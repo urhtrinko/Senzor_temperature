@@ -25,7 +25,7 @@ void loop(void)
 {
   // Send the command to get temperatures
   sensors.requestTemperatures();  
-  Serial.print("Temperatura je: ");
+  Serial.print("Temperatura je: "); // če hočeš podatke na serial plotter moraš zakometirati vse printe, ki niso INT ali FLOAT
   Serial.print(sensors.getTempCByIndex(0)); // Why "byIndex"? You can have more than one IC on the same bus. 0 refers to the first IC on the wire
   Serial.print("\xC2\xB0"); // dodaj simbol za stopnije celzija
   Serial.println("C");
@@ -44,7 +44,6 @@ void loop(void)
       Serial.println("Konec merjenja temperature.");
       while (true) {
         // Infinite loop to stop further execution
-        // Optionally, you can include a delay or other handling here
       }
     }
   }  
