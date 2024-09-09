@@ -18,7 +18,7 @@ temperature_data = []
 time_step = 0
 
 # Define time window
-D_t = 60*3 # [seconds] time interval that is constant for the graph
+D_t = 30 #60*3 # [seconds] time interval that is constant for the graph
 current_view = 'realtime' # initially realtime viewing
 scroll_offset = 0 # when this non zero the user has scolled away from realtime viewing
 
@@ -42,7 +42,7 @@ def update(frame, D_t): # time interval which is displayed on the graph
         time_data.append(time_step)
         print('{}: temperatura je {}°C'.format(time_step, temperature)) # print temperature at the same time
         temperature_data.append(float(temperature))
-        time_step += 1
+        time_step += 1 # s
 
         # only do this if the user is in 'realtime'
         if current_view == 'realtime':
@@ -93,7 +93,7 @@ def on_key(event):
 fig.canvas.mpl_connect('key_press_event', on_key)
 
 # Create the animation
-ani = FuncAnimation(fig, partial(update, D_t=D_t), interval=1000, cache_frame_data=False)  # Evry second call the function update()
+ani = FuncAnimation(fig, partial(update, D_t=D_t), interval=1000, cache_frame_data=False)  # every second call the function update()
 
 # Display the plot
 plt.show()
