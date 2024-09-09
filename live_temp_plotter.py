@@ -103,7 +103,8 @@ ser.close()
 
 # save data to a text file
 name = input('Shrani meritve kot:')
-time_data = np.array([time_data]) # prevedeno v ustrezbo obliko
-temperature_data = np.array([temperature_data])
-podatki = np.hstack((np.rot90(time_data, k=3), np.rot90(temperature_data, k=3))) # rotacija vrstica -> stolpec + pravi vrstni red in združitev stolpcev
-np.savetxt(f'Meritve/{name}.txt', podatki)
+if name != '':
+    time_data = np.array([time_data]) # prevedeno v ustrezbo obliko
+    temperature_data = np.array([temperature_data])
+    podatki = np.hstack((np.rot90(time_data, k=3), np.rot90(temperature_data, k=3))) # rotacija vrstica -> stolpec + pravi vrstni red in združitev stolpcev
+    np.savetxt(f'Meritve/{name}.txt', podatki)
