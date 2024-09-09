@@ -14,6 +14,10 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature sensors(&oneWire);
 
+// Precisely timed output
+unsigned long previousMillis = 0;  // Store the last time measurement was printed
+const long interval = 1000;        // Interval to wait (1 second)
+
 void setup(void)
 {
   Serial.begin(9600); //Begin serial communication
@@ -23,15 +27,18 @@ void setup(void)
 
 void loop(void)
 {
-  // Send the command to get temperatures
-  sensors.requestTemperatures();  
-  Serial.print("Temperatura je: "); // če hočeš podatke na serial plotter moraš zakometirati vse printe, ki niso INT ali FLOAT
-  Serial.print(sensors.getTempCByIndex(0)); // Why "byIndex"? You can have more than one IC on the same bus. 0 refers to the first IC on the wire
-  Serial.print("\xC2\xB0"); // dodaj simbol za stopnije celzija
-  Serial.println("C");
-  
-  //Update value every 1 sec.
-  delay(1000);
+  unsigned long currentMillis = millis();  // Get the current time
+  // measure precisely every second
+  if (currentMillis - previousMillis >= interval) {
+    // Save the last time a measurement was printed
+    previousMillis = currentMillis;
+    // Send the command to get temperatures
+    sensors.requestTemperatures();  
+    Serial.print("Temperatura je: ");
+    Serial.print(sensors.getTempCByIndex(0)); // Why "byIndex"? You can have more than one IC on the same bus. 0 refers to the first IC on the wire
+    Serial.print("\xC2\xB0"); // add degree celcius symbol
+    Serial.println("C");
+  }
 
   // Stop code execution when th STOP command is written in the serial monitor
   if (Serial.available() > 0) {
