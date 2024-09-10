@@ -1,7 +1,7 @@
 import sys
 import serial
 import re
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QFileDialog, QDialog
 from PyQt5.QtCore import QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -9,8 +9,36 @@ import numpy as np
 import serial.tools.list_ports
 
 # Import the generated Python GUI class
-from temp_sensor_main_window import Ui_MainWindow  # Replace with your .ui converted Python file
+from parameters_dialog_box import Ui_Dialog
+# from parameters_widget import Ui_Form # Widget
+from temp_sensor_main_window import Ui_MainWindow # Main window
 
+# class for dialog box functionality
+class ParamWindow(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.ui = Ui_Dialog()  # Initialize the side window
+        self.ui.setupUi(self)
+
+        # Connect the 'Save' button in the side window
+        self.ui.btnSave.clicked.connect(self.save_changes)
+        # close the dialog box
+        self.ui.btnCancel.clicked.connect(self.reject)
+
+        # Access to parent (main window)
+        self.main_window = parent
+
+    def save_changes(self):
+        # Get the new D_t value from the QLineEdit
+        try:
+            new_D_t = float(self.ui.lineEdit_Dt.text())
+            self.main_window.D_t = new_D_t  # Update the D_t value in the main window
+            self.main_window.ui.textDisplay.append(f'D_t updated to {new_D_t} seconds')
+            self.accept()  # Close the side window after saving
+        except ValueError:
+            self.main_window.ui.textDisplay.append('Invalid input for D_t')
+
+# calss for main window functionality
 class TemperaturePlot(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -57,6 +85,7 @@ class TemperaturePlot(QMainWindow):
         self.ui.btnClear.clicked.connect(self.clear_data)
         self.ui.btnMoveLeft.clicked.connect(self.move_left)
         self.ui.btnMoveRight.clicked.connect(self.move_right)
+        self.ui.btnParameters.clicked.connect(self.open_param_window) 
 
         # Shortcuts for the buttons
         self.ui.btnMoveLeft.setShortcut('Left')
@@ -134,6 +163,10 @@ class TemperaturePlot(QMainWindow):
         if self.measurement_active:
             self.measurement_active = False
         self.ui.textDisplay.append("Data cleared.")
+
+    def open_param_window(self):
+        self.param_window = ParamWindow(self)
+        self.param_window.show()
 
     def move_left(self):
         if (self.time_step > self.D_t):
