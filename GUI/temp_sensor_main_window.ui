@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>500</height>
+    <height>550</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>1200</width>
-    <height>500</height>
+    <height>550</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -27,8 +27,32 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
-     <widget class="QTextEdit" name="textDisplay">
+    <item row="0" column="0">
+     <widget class="QPushButton" name="btnParameters">
+      <property name="text">
+       <string>Parameters</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="btnStartDetection">
+      <property name="text">
+       <string>Start</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="btnStopDetection">
+      <property name="text">
+       <string>Stop</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QTextEdit" name="messageDisplay"/>
+    </item>
+    <item row="4" column="0" rowspan="3">
+     <widget class="QTextEdit" name="dataDisplay">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>1</horstretch>
@@ -40,62 +64,41 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="btnStartDetection">
-      <property name="text">
-       <string>Start</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="2">
-     <widget class="QPushButton" name="btnMoveRight">
-      <property name="text">
-       <string>&gt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1" colspan="2">
-     <widget class="QWidget" name="plotWidget" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>2</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QPushButton" name="btnMoveLeft">
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QPushButton" name="btnStopDetection">
-      <property name="text">
-       <string>Stop</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
+    <item row="6" column="1">
      <widget class="QPushButton" name="btnSave">
       <property name="text">
        <string>Save</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="2">
+    <item row="6" column="2">
      <widget class="QPushButton" name="btnClear">
       <property name="text">
        <string>Clear</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QPushButton" name="btnParameters">
+    <item row="5" column="1">
+     <widget class="QPushButton" name="btnMoveLeft">
       <property name="text">
-       <string>Parameters</string>
+       <string>&lt;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QPushButton" name="btnMoveRight">
+      <property name="text">
+       <string>&gt;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1" rowspan="2" colspan="2">
+     <widget class="QWidget" name="plotWidget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>2</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
       </property>
      </widget>
     </item>
