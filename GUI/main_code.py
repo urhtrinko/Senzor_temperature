@@ -57,6 +57,10 @@ class TemperaturePlot(QMainWindow):
         self.ui.btnMoveLeft.clicked.connect(self.move_left)
         self.ui.btnMoveRight.clicked.connect(self.move_right)
 
+        # Shortcuts for the buttons
+        self.ui.btnMoveLeft.setShortcut('Left')
+        self.ui.btnMoveRight.setShortcut('Right')
+
     # Function triggered by pressing the btnStartDetection to begin the measurement.
     def start_measurement(self):
         if not self.measurement_active:
