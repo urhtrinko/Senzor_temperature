@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(500, 318)
+        MainWindow.resize(1200, 500)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -60,9 +60,12 @@ class Ui_MainWindow(object):
         self.btnClear = QtWidgets.QPushButton(self.centralwidget)
         self.btnClear.setObjectName("btnClear")
         self.gridLayout.addWidget(self.btnClear, 4, 2, 1, 1)
+        self.btnParameters = QtWidgets.QPushButton(self.centralwidget)
+        self.btnParameters.setObjectName("btnParameters")
+        self.gridLayout.addWidget(self.btnParameters, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 500, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1200, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -81,3 +84,4 @@ class Ui_MainWindow(object):
         self.btnStopDetection.setText(_translate("MainWindow", "Stop"))
         self.btnSave.setText(_translate("MainWindow", "Save"))
         self.btnClear.setText(_translate("MainWindow", "Clear"))
+        self.btnParameters.setText(_translate("MainWindow", "Parameters"))
