@@ -14,27 +14,32 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(269, 156)
-        self.gridLayout = QtWidgets.QGridLayout(Dialog)
+        Dialog.resize(297, 159)
+        Dialog.setMinimumSize(QtCore.QSize(250, 150))
+        self.gridLayout_2 = QtWidgets.QGridLayout(Dialog)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
-        self.lineEditD_t = QtWidgets.QLineEdit(Dialog)
-        self.lineEditD_t.setObjectName("lineEditD_t")
-        self.gridLayout.addWidget(self.lineEditD_t, 0, 1, 1, 1)
-        self.labelD_t = QtWidgets.QLabel(Dialog)
-        self.labelD_t.setObjectName("labelD_t")
-        self.gridLayout.addWidget(self.labelD_t, 0, 0, 1, 1)
-        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName("buttonBox")
-        self.gridLayout.addWidget(self.buttonBox, 1, 1, 1, 1)
+        self.label_Dt = QtWidgets.QLabel(Dialog)
+        self.label_Dt.setObjectName("label_Dt")
+        self.gridLayout.addWidget(self.label_Dt, 0, 0, 1, 1)
+        self.lineEdit_Dt = QtWidgets.QLineEdit(Dialog)
+        self.lineEdit_Dt.setObjectName("lineEdit_Dt")
+        self.gridLayout.addWidget(self.lineEdit_Dt, 0, 1, 1, 1)
+        self.btnCancel = QtWidgets.QPushButton(Dialog)
+        self.btnCancel.setObjectName("btnCancel")
+        self.gridLayout.addWidget(self.btnCancel, 1, 0, 1, 1)
+        self.btnSave = QtWidgets.QPushButton(Dialog)
+        self.btnSave.setObjectName("btnSave")
+        self.gridLayout.addWidget(self.btnSave, 1, 1, 1, 1)
+        self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
 
         self.retranslateUi(Dialog)
-        self.buttonBox.rejected.connect(Dialog.reject) # type: ignore
-        self.buttonBox.accepted.connect(Dialog.accept) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.labelD_t.setText(_translate("Dialog", "D_t:"))
+        self.label_Dt.setText(_translate("Dialog", "Time window:"))
+        self.btnCancel.setText(_translate("Dialog", "Cancel"))
+        self.btnSave.setText(_translate("Dialog", "Save"))
