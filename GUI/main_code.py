@@ -62,6 +62,28 @@ class TemperaturePlot(QMainWindow):
         self.ui.btnMoveLeft.setShortcut('Left')
         self.ui.btnMoveRight.setShortcut('Right')
 
+        # Continously read data to prevent the growth of the buffer (delay between the measurement and diplay)
+        self.latest_temperature = None  # Stores the most recent temperature value
+        
+        # Timer for continuous serial reading
+        self.serial_read_timer = QTimer()
+        self.serial_read_timer.setInterval(100)  # Read every 100ms
+        self.serial_read_timer.timeout.connect(self.read_serial_data) # funciton read_serial_data defined bellow
+        self.serial_read_timer.start()
+
+    # Function to continuously read data from the serial port (help with delays)
+    def read_serial_data(self):
+        # Continuously read data from the serial port, regardless of whether measurement is active
+        line = self.ser.readline().decode('utf-8').strip()
+
+        try:
+            # Extract temperature value and store the latest value
+            temperature = float(re.findall("\d+\.\d+", line)[0])
+            self.latest_temperature = temperature  # Update the latest temperature value
+        except (IndexError, ValueError):
+            # Skip invalid lines
+            pass
+
     # Function triggered by pressing the btnStartDetection to begin the measurement.
     def start_measurement(self):
         if not self.measurement_active:
@@ -140,39 +162,31 @@ class TemperaturePlot(QMainWindow):
 
     def update_plot(self):
         if self.measurement_active: # control the measurement with the START/STOP buttons
-            # Read data from the serial port
-            line = self.ser.readline().decode('utf-8').strip()
+            
+            self.time_data.append(self.time_step)
+            self.temperature_data.append(self.latest_temperature) # display latest temperature, which is now always being updated
+            # Print temperature in the QTextEdit
+            self.ui.textDisplay.append(f'{self.time_step}s: {self.latest_temperature}°C')
+            # Log the number of bytes in the input buffer (chech if it is growing over time - could lead to delay)
+            buffer_size = self.ser.in_waiting
+            self.ui.textDisplay.append(f"Buffer size: {buffer_size} bytes")
+            # Increment time step
+            self.time_step += 1
+            if self.current_view == 'realtime': 
+                # Update the plot
+                self.ax.clear()
+                self.ax.plot(self.time_data, self.temperature_data, label="Temperature (°C)")
+                # Keep the x-axis showing only the last D_t seconds
+                if self.time_step > self.D_t:
+                    self.ax.set_xlim(left=(self.time_step - self.D_t), right=self.time_step)
+                else:
+                    self.ax.set_xlim(left=0, right=self.D_t)
+                self.ax.set_xlabel("Time (s)")
+                self.ax.set_ylabel("Temperature (°C)")
+                self.ax.legend(loc='upper right')
+                # Redraw the canvas
+                self.canvas.draw()
 
-            try:
-                # Extract temperature value and convert it to float
-                temperature = float(re.findall("\d+\.\d+", line)[0])
-                self.time_data.append(self.time_step)
-                self.temperature_data.append(temperature)
-                # Print temperature in the QTextEdit
-                self.ui.textDisplay.append(f'{self.time_step}s: {temperature}°C')
-                # Log the number of bytes in the input buffer (chech if it is growing over time - could lead to delay)
-                buffer_size = self.ser.in_waiting
-                self.ui.textDisplay.append(f"Buffer size: {buffer_size} bytes")
-                # Increment time step
-                self.time_step += 1
-                if self.current_view == 'realtime': 
-                    # Update the plot
-                    self.ax.clear()
-                    self.ax.plot(self.time_data, self.temperature_data, label="Temperature (°C)")
-                    # Keep the x-axis showing only the last D_t seconds
-                    if self.time_step > self.D_t:
-                        self.ax.set_xlim(left=(self.time_step - self.D_t), right=self.time_step)
-                    else:
-                        self.ax.set_xlim(left=0, right=self.D_t)
-                    self.ax.set_xlabel("Time (s)")
-                    self.ax.set_ylabel("Temperature (°C)")
-                    self.ax.legend(loc='upper right')
-                    # Redraw the canvas
-                    self.canvas.draw()
-
-            except (IndexError, ValueError):
-                # Skip invalid lines
-                pass
 
     def closeEvent(self, event):
         # Close the serial port when the window is closed
