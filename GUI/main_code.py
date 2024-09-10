@@ -6,6 +6,7 @@ from PyQt5.QtCore import QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import numpy as np
+import serial.tools.list_ports
 
 # Import the generated Python GUI class
 from temp_sensor_main_window import Ui_MainWindow  # Replace with your .ui converted Python file
@@ -64,6 +65,8 @@ class TemperaturePlot(QMainWindow):
     # Function triggered by pressing the btnStartDetection to begin the measurement.
     def start_measurement(self):
         if not self.measurement_active:
+            # important!!
+            self.ser.flushInput() # Flush the input buffer - fixing delayed temperature response
             self.ui.textDisplay.append("Measurement started...") # print a message to let the user know the measurement has started
             self.measurement_active = True
             # Timer to update the plot every second
@@ -125,7 +128,7 @@ class TemperaturePlot(QMainWindow):
 
     def update_scroll_view(self):
         self.ax.clear()
-        start_time = max(0, self.time_step - self.D_t - self.scroll_offset)
+        start_time = max(0, self.time_step - self.D_t - self.scroll_offset) # makes sure the user dosen't go to negative time
         end_time = start_time + self.D_t
         self.ax.plot(self.time_data, self.temperature_data, '-', label='Temperatura (°C)')
         self.ax.set_xlim(left=start_time, right=end_time)
@@ -147,6 +150,9 @@ class TemperaturePlot(QMainWindow):
                 self.temperature_data.append(temperature)
                 # Print temperature in the QTextEdit
                 self.ui.textDisplay.append(f'{self.time_step}s: {temperature}°C')
+                # Log the number of bytes in the input buffer (chech if it is growing over time - could lead to delay)
+                buffer_size = self.ser.in_waiting
+                self.ui.textDisplay.append(f"Buffer size: {buffer_size} bytes")
                 # Increment time step
                 self.time_step += 1
                 if self.current_view == 'realtime': 
