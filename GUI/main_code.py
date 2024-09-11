@@ -298,8 +298,8 @@ class TemperaturePlot(QMainWindow):
             self.temperature_data.append(self.latest_temperature) # display latest temperature, which is now always being updated
             # Print temperature in the QTextEdit
             self.ui.dataDisplay.append(f'{self.time_step}s: {self.latest_temperature}°C')
-            # # Log the number of bytes in the input buffer (chech if it is growing over time - could lead to delay)
-            # self.get_bytes()
+            # Log the number of bytes in the input buffer (chech if it is growing over time - could lead to delay)
+            self.get_bytes()
             # Increment time step
             self.time_step += 1
             if self.current_view == 'realtime': 
