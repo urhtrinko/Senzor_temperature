@@ -120,8 +120,8 @@ class TemperaturePlot(QMainWindow):
         # Continously read data to prevent the growth of the buffer (delay between the measurement and diplay)
         self.latest_temperature = None  # Stores the most recent temperature value
 
-        # # Flag to check if an error has occured
-        # self.error_occured = False
+        # Marker for establshing the serial connection 
+        self.already_connected = False
         
         # Timer for continuous serial reading
         self.serial_read_timer = QTimer()
@@ -137,10 +137,11 @@ class TemperaturePlot(QMainWindow):
             self.ui.messageDisplay.append(f"Serial connection established on {port} at {baud_rate} baud.")
             self.get_bytes() # print out number of bytes
             self.serial_read_timer.start() # start continously reading the serial port
-
+            self.already_connected = True
         except serial.SerialException as e:
             # Handle connection error
-            self.error_message(f"Failed to connect: {str(e)}")
+            if not self.already_connected:
+                self.error_message(f"Failed to connect: {str(e)}")
 
     def update_serial_settings(self, port, baud_rate):
         # Update the main window with the new settings
