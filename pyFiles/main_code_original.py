@@ -8,7 +8,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import serial.tools.list_ports
 import time
+import os
 
+fh=os.path.expanduser('~')
+base_path = os.path.join(fh, 'OneDrive', 'Documents', 'Medicinska_fizika', 'Studentsko_delo', 'IJS-F2', 'Delo', 'Senzor_temperature',
+                        'GUI')
+# Add base_path to sys.path
+sys.path.append(base_path)
+# Import the generated Python GUI class
 # Import the generated Python GUI class
 from parameters_dialog_box import Ui_Dialog
 # from parameters_widget import Ui_Form # Widget
