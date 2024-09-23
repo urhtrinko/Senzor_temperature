@@ -33,6 +33,11 @@ class ParamWindow(QDialog):
         self.ui.lineEdit_serialPort.setText(str(self.port))
         self.ui.lineEdit_baudRate.setText(str(self.baud_rate))
         self.ui.lineEdit_Dt.setText(str(self.main_window.D_t))
+        self.ui.lineEdit_measureInterval.setText(str(self.main_window.measure_interval/1000)) # get value in secs
+        if self.main_window.simulation_mode:
+            self.ui.radioButton_simOn.setChecked(True)
+        else:
+            self.ui.radioButton_simOff.setChecked(True)
 
         # Connect the 'Save' button in the side window
         self.ui.btnSave.clicked.connect(self.save_changes)
@@ -42,6 +47,11 @@ class ParamWindow(QDialog):
     def save_changes(self):
         # save new parameters
         try:
+            # check radio buttons, which determine if the data is being simulated (True) or measured (False)
+            if self.ui.radioButton_simOff.isChecked(): # measurement
+                self.main_window.simulation_mode = False
+            else: # simulation
+                self.main_window.simulation_mode = True
             # serial port
             self.port = str(self.ui.lineEdit_serialPort.text())
             # baud rate
@@ -50,12 +60,18 @@ class ParamWindow(QDialog):
             self.main_window.update_serial_settings(self.port, self.baud_rate)
             # new time window
             new_D_t = float(self.ui.lineEdit_Dt.text())
-            self.main_window.D_t = new_D_t  # Update the D_t value in the main window
-            self.main_window.ui.messageDisplay.append(f'Time window updated to {new_D_t} seconds')
+            if new_D_t != self.main_window.D_t: # only print message when there is a change
+                self.main_window.D_t = new_D_t  # Update the D_t value in the main window
+                self.main_window.ui.messageDisplay.append(f'Time window updated to {new_D_t} seconds.\n')
+            # new measurement interval
+            new_measure_interval = float(self.ui.lineEdit_measureInterval.text()) # in secs
+            if new_measure_interval*1000 != self.main_window.measure_interval:
+                self.main_window.measure_interval = new_measure_interval*1000 # in msecs !
+                self.main_window.ui.messageDisplay.append(f'Measure interval updated to {new_measure_interval} seconds.\n')
             # Close the side window after saving
             self.accept()
         except ValueError:
-            self.main_window.ui.messageDisplay.append('Invalid input')
+            self.main_window.ui.messageDisplay.append('Invalid input\n')
 
 # calss for main window functionality
 class TemperaturePlot(QMainWindow):
@@ -89,14 +105,15 @@ class TemperaturePlot(QMainWindow):
         self.current_time_list = []
         self.temperature_data = []
         self.time_step = 0
-        self.D_t = 60  # At start: 60 seconds time window
+        self.D_t = 5*60  # At start: 300 seconds time window
+        self.measure_interval = 60*1000 # interval for updating the plot, in miliseconds, At start: 60 000 miliseconds
         self.stop_time = None  # To track when the measurement was stopped
 
         # initialize the measurement status
         self.measurement_active = False
 
         # parameters used for user enabled scroling in time
-        self.scroll_offset = 0 
+        self.scroll_offset = 0
         self.current_view = 'realtime'
 
         # BUTTON CONNECTIONS (set up what each button does)
@@ -133,9 +150,9 @@ class TemperaturePlot(QMainWindow):
         # self.serial_read_timer.start() # only start the timer when the user specifies the port, baud rate
 
         # Flag to determine when to simulate data instead of reading it
-        self.simulation_mode = True
+        self.simulation_mode = False
 
-        # Flag to warn the user when the data isn' saved
+        # Flag to warn the user when the data hasn't yet been saved
         self.already_saved = False
 
     def establish_serial_connection(self, port, baud_rate):
@@ -144,7 +161,7 @@ class TemperaturePlot(QMainWindow):
                 # Initialize the serial connection with selected settings
                 self.ser = serial.Serial(port, baud_rate, timeout=1)
                 # print(f"Serial connection established on {port} at {baud_rate} baud.")
-                self.ui.messageDisplay.append(f"Serial connection established on {port} at {baud_rate} baud.")
+                self.ui.messageDisplay.append(f"Serial connection established on {port} at {baud_rate} baud.\n")
                 self.get_bytes() # print out number of bytes
                 self.serial_read_timer.start() # start continously reading the serial port
                 self.already_connected = True
@@ -153,7 +170,7 @@ class TemperaturePlot(QMainWindow):
                 if not self.already_connected:
                     self.error_message(f"Failed to connect: {str(e)}")
         else:
-            self.ui.messageDisplay.append(f"Simulation mode on.")
+            self.ui.messageDisplay.append(f"Simulation mode on.\n")
 
     def update_serial_settings(self, port, baud_rate):
         # Update the main window with the new settings
@@ -174,7 +191,6 @@ class TemperaturePlot(QMainWindow):
         if self.ser and self.ser.is_open: # only read if the serial connection is properly established
             # Continuously read data from the serial port, regardless of whether measurement is active
             line = self.ser.readline().decode('utf-8').strip()
-
             try:
                 # Extract temperature value and store the latest value
                 temperature = float(re.findall("\d+\.\d+", line)[0])
@@ -190,7 +206,7 @@ class TemperaturePlot(QMainWindow):
             if not self.measurement_active:
                 if not self.simulation_mode:
                     self.ser.flushInput()  # Flush the input buffer only for real Arduino data
-                self.ui.messageDisplay.append("Measurement started...")
+                self.ui.messageDisplay.append("Measurement started...\n")
                 self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
                 self.measurement_active = True
 
@@ -198,10 +214,12 @@ class TemperaturePlot(QMainWindow):
                     elapsed_time = time.time() - self.stop_time
                     self.time_step += int(elapsed_time)
                     self.stop_time = None
-
-                # Timer to update the plot every second
+                
+                # Update plot immediately as the start_measurement button is pressed
+                self.update_plot()
+                # Timer to update the plot time interval equal to the parameter 'measure_interval'
                 self.timer = QTimer()
-                self.timer.setInterval(1000)  # 1 second interval
+                self.timer.setInterval(int(self.measure_interval))  # 'measure_interval' determines the time interval for updatign the plot
                 self.timer.timeout.connect(self.update_plot)
                 self.timer.start()
 
@@ -209,7 +227,7 @@ class TemperaturePlot(QMainWindow):
     def stop_measurement(self):
         if self.measurement_active:
             self.measurement_active = False
-            self.ui.messageDisplay.append("Measurement stoped...")
+            self.ui.messageDisplay.append("Measurement stoped...\n")
             self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
             
             # stop the timer for plotting the data
@@ -240,7 +258,7 @@ class TemperaturePlot(QMainWindow):
                         f.write(f"{live_time:.2f}   {current_time}  {temp:.2f}\n")
             
             # Notify user of the successful save
-            self.ui.messageDisplay.append(f"Data saved to {file_name}")
+            self.ui.messageDisplay.append(f"Data saved to {file_name}\n")
             self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
             self.already_saved = True
 
@@ -267,23 +285,24 @@ class TemperaturePlot(QMainWindow):
         # stop measurement if it is running
         if self.measurement_active:
             self.measurement_active = False
-        self.ui.messageDisplay.append("Data cleared.")
+        self.ui.messageDisplay.append("Data cleared.\n")
         self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
         self.stop_time = None # set back to None so that it starts measureing from zero
         
     def open_param_window(self):
+        self.stop_measurement()
         self.param_window = ParamWindow(self)
         self.param_window.show()
 
     def move_left(self):
         if (self.time_step > self.D_t):
-            self.scroll_offset += 5 # one press left key -> 5s back
+            self.scroll_offset += self.measure_interval/1000 # one press left key -> 5s back
             self.current_view = 'scrolling'
             self.update_scroll_view()
     
     def move_right(self):
         if (self.scroll_offset > 0):
-            self.scroll_offset -= 5 # one press left key -> 5s back
+            self.scroll_offset -= self.measure_interval/1000 # one press left key -> 5s back
             if self.scroll_offset == 0:
                 self.current_view = 'realtime'
             self.update_scroll_view()
@@ -304,7 +323,7 @@ class TemperaturePlot(QMainWindow):
         if self.ser and self.ser.is_open: # only execute when the serial connection is properly established
             # Log the number of bytes in the input buffer (chech if it is growing over time - could lead to delay)
             buffer_size = self.ser.in_waiting
-            self.ui.messageDisplay.append(f"Buffer size: {buffer_size} bytes")
+            self.ui.messageDisplay.append(f"Buffer size: {buffer_size} bytes\n")
     
     def error_message(self, message):
         # Create a message box
@@ -334,7 +353,7 @@ class TemperaturePlot(QMainWindow):
                 self.ui.dataDisplay.append(f'{current_time}: {self.latest_temperature}°C')
 
             self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
-            self.time_step += 1
+            self.time_step += self.measure_interval/1000 # in secs
 
             if self.current_view == 'realtime':
                 self.ax.clear()
