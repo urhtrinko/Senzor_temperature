@@ -79,6 +79,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.label_serialPort.setText(_translate("Dialog", "Serial port:"))
         self.label_SimulationMode.setText(_translate("Dialog", "Simulation mode:"))
+        self.lineEdit_baudRate.setText(_translate("Dialog", "9600"))
         self.label_secs1.setText(_translate("Dialog", "s"))
         self.btnSave.setText(_translate("Dialog", "Save"))
         self.radioButton_simOn.setText(_translate("Dialog", "On"))

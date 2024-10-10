@@ -29,12 +29,12 @@ class ParamWindow(QDialog):
         # Access to parent (main window)
         self.main_window = parent
         
-        self.port = 'COM3' # default values for serial connection
-        self.baud_rate = 9600
+        # self.port = str(self.ui.lineEdit_serialPort.text())
+        # self.baud_rate = int(self.ui.lineEdit_baudRate.text())
 
         # parameters written in qLineEdit
-        self.ui.lineEdit_serialPort.setText(str(self.port))
-        self.ui.lineEdit_baudRate.setText(str(self.baud_rate))
+        self.ui.lineEdit_serialPort.setText(str(self.main_window.port))
+        self.ui.lineEdit_baudRate.setText(str(self.main_window.baud_rate))
         self.ui.lineEdit_Dt.setText(str(self.main_window.D_t))
         self.ui.lineEdit_measureInterval.setText(str(self.main_window.measure_interval/1000)) # get value in secs
         if self.main_window.simulation_mode:
@@ -46,6 +46,18 @@ class ParamWindow(QDialog):
         self.ui.btnSave.clicked.connect(self.save_changes)
         # close the dialog box
         self.ui.btnCancel.clicked.connect(self.reject)
+    
+    # Function to update measure_interval and restart the timer
+    def update_measure_interval(self, new_interval):
+        # Stop the current timer
+        self.main_window.timer.stop()
+
+        # Update the measure_interval
+        self.main_window.measure_interval = new_interval
+
+        # Restart the timer with the new interval
+        self.main_window.timer.setInterval(int(self.main_window.measure_interval))  # Set the new interval
+        self.main_window.timer.start()  # Start the timer again with the new interval
 
     def save_changes(self):
         # save new parameters
@@ -55,12 +67,15 @@ class ParamWindow(QDialog):
                 self.main_window.simulation_mode = False
             else: # simulation
                 self.main_window.simulation_mode = True
-            # serial port
-            self.port = str(self.ui.lineEdit_serialPort.text())
-            # baud rate
-            self.baud_rate = int(self.ui.lineEdit_baudRate.text())
+            # new serial port
+            new_port = str(self.ui.lineEdit_serialPort.text())
+            if new_port != self.main_window.port:
+                self.main_window.port = new_port
+            new_baud_rate = int(self.ui.lineEdit_baudRate.text())
+            if new_baud_rate != self.main_window.baud_rate:
+                self.main_window.baud_rate = new_baud_rate
             # Pass the settings back to the main window and close the dialog
-            self.main_window.update_serial_settings(self.port, self.baud_rate)
+            self.main_window.update_serial_settings(self.main_window.port, self.main_window.baud_rate)
             # new time window
             new_D_t = float(self.ui.lineEdit_Dt.text())
             if new_D_t != self.main_window.D_t: # only print message when there is a change
@@ -69,7 +84,8 @@ class ParamWindow(QDialog):
             # new measurement interval
             new_measure_interval = float(self.ui.lineEdit_measureInterval.text()) # in secs
             if new_measure_interval*1000 != self.main_window.measure_interval:
-                self.main_window.measure_interval = new_measure_interval*1000 # in msecs !
+                # self.main_window.measure_interval = new_measure_interval*1000 # in msecs !
+                self.update_measure_interval(new_measure_interval*1000)
                 self.main_window.ui.messageDisplay.append(f'Measure interval updated to {new_measure_interval} seconds.\n')
             # Close the side window after saving
             self.accept()
@@ -104,6 +120,8 @@ class TemperaturePlot(QMainWindow):
         self.ui.plotWidget.layout().addWidget(self.canvas)  # Add canvas to GUI plotWidget (QWidget placeholder)
 
         # Data for plotting
+        self.port = 'COM3'
+        self.baud_rate = 9600
         self.time_data = []
         self.current_time_list = []
         self.temperature_data = []
@@ -145,6 +163,9 @@ class TemperaturePlot(QMainWindow):
 
         # Marker for establshing the serial connection 
         self.already_connected = False
+
+        # timer for updating the plot
+        self.timer = QTimer()
         
         # Timer for continuous serial reading
         self.serial_read_timer = QTimer()
@@ -218,6 +239,7 @@ class TemperaturePlot(QMainWindow):
                     self.time_step += int(elapsed_time)
                     self.stop_time = None
                 
+                self.start_time = None
                 # Update plot immediately as the start_measurement button is pressed
                 self.update_plot()
                 # Timer to update the plot time interval equal to the parameter 'measure_interval'
@@ -274,6 +296,7 @@ class TemperaturePlot(QMainWindow):
                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.No:
                 return  # Exit the function without clearing data
+        self.start_time = None  # Reset the start time when starting new measurements
         # clear all data
         self.time_data = []
         self.current_time_list = []
@@ -355,8 +378,14 @@ class TemperaturePlot(QMainWindow):
                 self.temperature_data.append(self.latest_temperature)
                 self.ui.dataDisplay.append(f'{current_time}: {self.latest_temperature}°C')
 
-            self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
+            # self.get_bytes() if not self.simulation_mode else None  # Only print bytes if using the serial connection
+            
             self.time_step += self.measure_interval/1000 # in secs
+            # # Fix step-like behaviour
+            # if self.start_time is None:
+            #     self.start_time = time.time()  # Record the start time once
+            # current_time = time.time()
+            # self.time_step = current_time - self.start_time  # Use the real elapsed time
 
             if self.current_view == 'realtime':
                 self.ax.clear()
